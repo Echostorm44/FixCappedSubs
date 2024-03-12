@@ -77,23 +77,32 @@ public partial class MainWindow : Window
                 lblStatus.Text = $"Processing {inputFilePath}...";
                 string outputFilePath = Path.ChangeExtension(inputFilePath, ".srt");
 
-                // Execute FFmpeg command
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = "ffmpeg.exe",
-                    Arguments = $"-i \"{inputFilePath}\" -map 0:s:0 \"{outputFilePath}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                string[] lines = [];
 
-                using(Process process = new Process { StartInfo = startInfo })
+                if(!inputFilePath.EndsWith(".srt"))
                 {
-                    process.Start();
-                    process.WaitForExit();
+                    // Execute FFmpeg command
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = "ffmpeg.exe",
+                        Arguments = $"-i \"{inputFilePath}\" -map 0:s:0 \"{outputFilePath}\"",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using(Process process = new Process { StartInfo = startInfo })
+                    {
+                        process.Start();
+                        process.WaitForExit();
+                    }
+                    lines = File.ReadAllLines(outputFilePath);
+                }
+                else
+                {
+                    lines = File.ReadAllLines(inputFilePath);
                 }
 
-                string[] lines = File.ReadAllLines(outputFilePath);
                 bool isTextLine = false;
 
                 for(int i = 0; i < lines.Length; i++)
@@ -151,6 +160,42 @@ public partial class MainWindow : Window
         }
 
         var sentenceRegex = new Regex(@"(^[a-z])|[?!.:;]\s+(.)", RegexOptions.ExplicitCapture);
-        return sentenceRegex.Replace(input.ToLower(), s => s.Value.ToUpper());
+        return FixIs(sentenceRegex.Replace(input.ToLower(), s => s.Value.ToUpper()));
+    }
+
+    public static string FixIs(string input)
+    {
+        string[] words = input.Split(' ');
+
+        for(int i = 0; i < words.Length; i++)
+        {
+            if(words[i].Equals("i", StringComparison.OrdinalIgnoreCase))
+            {
+                words[i] = "I";
+            }
+        }
+
+        return string.Join(" ", words);
+    }
+
+    private void btnBrowseSrtFiles_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var fileBrowser = new Microsoft.Win32.OpenFileDialog() 
+            { CheckFileExists = true, Multiselect = true, Filter = "Subtitle Files|*.srt" };
+            fileBrowser.ShowDialog();
+            if(fileBrowser.FileNames != null && fileBrowser.FileNames.Length > 0)
+            {
+                foreach(string item in fileBrowser.FileNames)
+                {
+                    FilesToFix.Add(item.Trim());
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            lblError.Text = ex.ToString();
+        }
     }
 }

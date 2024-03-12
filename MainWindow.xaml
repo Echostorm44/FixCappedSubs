@@ -13,10 +13,14 @@
                 <RowDefinition Height="50"></RowDefinition>
                 <RowDefinition Height="350"></RowDefinition>
             </Grid.RowDefinitions>
-            <Border Padding="10">                
-                <Button Name="btnBrowseFiles" Content="Browse" Width="100" 
-                        HorizontalAlignment="Left"
-                        Click="btnBrowseFiles_Click"></Button>
+            <Border Padding="10">
+                <StackPanel Orientation="Horizontal">
+                <Button Name="btnBrowseFiles" Content="Browse Videos" Width="100" 
+                            HorizontalAlignment="Left"
+                            Click="btnBrowseFiles_Click"></Button>
+                    <Button x:Name="btnBrowseSrtFiles" Content="Browse srt Files" Width="150"
+                            Click="btnBrowseSrtFiles_Click" Margin="10,0"></Button>
+                </StackPanel>
             </Border>
             <Border Padding="10" Grid.Row="1">
                 <StackPanel Orientation="Horizontal">
